@@ -28,11 +28,12 @@ added to the data that assign a group index to each IU (row).
       return np.mean(sample_prevs) * 100
 
 
-  def comp_prevalence_group(iu_data, nsamples=3000):
+  def comp_prevalence_group(iu_data, max_prev=60, group_size=10, nsamples=3000):
       prev = estimate_mean_prevalence(iu_data["Logit"], iu_data["Sds"], nsamples)
-      if prev >= 60:
+      if prev >= max_prev:
           return 7
-      return ceil(prev / 10)
+      group = ceil(prev / group_size)
+      return f"group_{group}"
 
   data = pd.read_csv("./FinalData.csv")
   data["group"] = data.apply(comp_prevalence_group, axis=1, nsamples=3000)
@@ -41,12 +42,12 @@ added to the data that assign a group index to each IU (row).
 #+end_src
 
 #+RESULTS: group-ius
-:     Country  Region    District  ... last_MDA  Scenario  group
-: 0  Ethiopia  Amhara     N. Shoa  ...     2017        36      2
-: 1  Ethiopia  Amhara  West Gojam  ...     2019        28      3
-: 2  Ethiopia  Amhara         Awi  ...     2012        45      3
-: 3  Ethiopia  Amhara  West Gojam  ...     2019        28      2
-: 4  Ethiopia  Amhara     N. Shoa  ...     2015        46      2
+:     Country  Region    District  ... last_MDA  Scenario    group
+: 0  Ethiopia  Amhara     N. Shoa  ...     2017        36  group_2
+: 1  Ethiopia  Amhara  West Gojam  ...     2019        28  group_3
+: 2  Ethiopia  Amhara         Awi  ...     2012        45  group_3
+: 3  Ethiopia  Amhara  West Gojam  ...     2019        28  group_2
+: 4  Ethiopia  Amhara     N. Shoa  ...     2015        46  group_2
 : 
 : [5 rows x 14 columns]
 
