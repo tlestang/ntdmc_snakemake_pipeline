@@ -1,0 +1,263 @@
+We start from a data file [[file:~/scratch/repos/NTDMC_trachoma_pipeline/data/FinalData.csv::"Country","Region","District","Subdistrict","Geoconnect_ID","Pop_point","Pop_district","Logit","Sds","IUCodes","start_MDA","last_MDA","Scenario"][~FinalData.csv~]].
+#+begin_src bash :results output table
+  head -6 FinalData.csv
+#+end_src
+
+#+RESULTS:
+| Country  | Region | District   | Subdistrict   | Geoconnect_ID |   Pop_point | Pop_district |        Logit |         Sds | IUCodes  | start_MDA | last_MDA | Scenario |
+| Ethiopia | Amhara | N. Shoa    | Baso Naworana |          6303 | 161.3058472 |  13128.23101 | -1.814302776 | 0.243590266 | ETH18551 |      2008 |     2017 |       36 |
+| Ethiopia | Amhara | West Gojam | Gongi Kolela  |          6217 | 288.9628601 |  69764.48892 |  -1.28066311 | 0.255922043 | ETH18604 |      2008 |     2019 |       28 |
+| Ethiopia | Amhara | Awi        | Injibara Town |          6235 | 269.2124939 |  3838.929398 | -0.935541745 | 0.243342198 | ETH18612 |      2007 |     2012 |       45 |
+| Ethiopia | Amhara | West Gojam | Bahirdar City |          6195 | 27662.99219 |  159621.1792 | -1.904811727 | 0.253838325 | ETH18548 |      2008 |     2019 |       28 |
+| Ethiopia | Amhara | N. Shoa    | Shewarobit    |          6290 | 1459.335815 |  7610.069405 | -1.594963205 | 0.231147122 | ETH18660 |      2009 |     2015 |       46 |
+
+Groups of IUs are processed in parallel processes. A group column is
+added to the data that assign a group index to each IU (row).
+
+#+NAME: group-ius
+#+begin_src python :tangle "group_ius.py" :results output
+  import pandas as pd
+  from math import ceil
+  import numpy as np
+  from numpy.random import default_rng
+
+  def estimate_mean_prevalence(loc, scale, nsamples):
+      rng = default_rng()
+      samples = rng.normal(loc, scale, size=nsamples)
+      sample_prevs = np.exp(samples) / (1 + np.exp(samples))
+      return np.mean(sample_prevs) * 100
+
+
+  def comp_prevalence_group(iu_data, nsamples=3000):
+      prev = estimate_mean_prevalence(iu_data["Logit"], iu_data["Sds"], nsamples)
+      if prev >= 60:
+          return 7
+      return ceil(prev / 10)
+
+  data = pd.read_csv("./FinalData.csv")
+  data["group"] = data.apply(comp_prevalence_group, axis=1, nsamples=3000)
+  print(data.head())
+  data.to_csv("FinalDataGroup.csv", index=False)
+#+end_src
+
+#+RESULTS: group-ius
+:     Country  Region    District  ... last_MDA  Scenario  group
+: 0  Ethiopia  Amhara     N. Shoa  ...     2017        36      2
+: 1  Ethiopia  Amhara  West Gojam  ...     2019        28      3
+: 2  Ethiopia  Amhara         Awi  ...     2012        45      3
+: 3  Ethiopia  Amhara  West Gojam  ...     2019        28      2
+: 4  Ethiopia  Amhara     N. Shoa  ...     2015        46      2
+: 
+: [5 rows x 14 columns]
+
+We are only interested in ius that have the same prevalence group and
+scenario. Say group 1 and scenario 1. let's compute a infection
+prevalence map for these ius with 100 samples per iu.
+
+#+begin_src python :results output :var nsamples=100
+  import pandas as pd
+  import numpy as np
+  from numpy.random import default_rng
+
+  data = pd.read_csv("FinalDataGroup.csv").set_index("IUCodes")
+  ius_subset = data[(data["Scenario"] == 1) & (data["group"] == 1)]
+  rng = default_rng()
+  prevs = ius_subset.apply(
+      lambda s: rng.normal(s["Logit"], s["Sds"], nsamples),
+      axis=1,
+      result_type="expand"
+  ).apply(lambda x: np.exp(x) / (1 + np.exp(x)))
+  print(prevs.head())
+  prevs.to_csv("prevs.csv", index=False)
+#+end_src
+
+#+RESULTS:
+:                 0         1         2   ...        97        98        99
+: IUCodes                                 ...                              
+: ETH19068  0.071090  0.075715  0.081418  ...  0.084050  0.071494  0.098808
+: ETH19074  0.172596  0.099039  0.165491  ...  0.161398  0.066946  0.120776
+: ETH19113  0.088570  0.088261  0.091723  ...  0.051649  0.066330  0.079660
+: ETH19043  0.068435  0.099295  0.142547  ...  0.098927  0.080196  0.055111
+: ETH19076  0.069317  0.079114  0.068478  ...  0.124034  0.105007  0.056776
+: 
+: [5 rows x 100 columns]
+
+Now it's time to feed this sampled prevalence data into the AMIS
+algorithm, along with a function that evolves the epidemiological
+model and the parameters for the algorithm.
+
+The trachoma model reads (write) input (output) in files on disk. The
+~amis~ function however expects to be passed a function takink two arguments
+
+#+begin_example
+model_func(seeds, beta_values)
+#+end_example
+
+with ~seeds~ and ~beta_values~ vectors of seeds and values for the
+beta parameter, respectively.
+
+Let's start with writing the model input file describing the beginning
+and end years of the simulation, as well as the first and last years of MDA.
+
+#+begin_src python :var END_SIM_YEAR=2019
+  import pandas as pd
+
+  data = pd.read_csv("FinalDataGroup.csv")
+
+  mda_start_years = data.loc[data["start_MDA"] > 0, "start_MDA"]
+  start_sim_year = mda_start_years.min()
+
+  first_row_matching_scenario = data[(data["Scenario"] == 3)].iloc[0]
+  first_MDA_year = first_row_matching_scenario["start_MDA"]
+  last_MDA_year = first_row_matching_scenario["last_MDA"]
+
+  mda_data = pd.DataFrame(
+      [[start_sim_year, END_SIM_YEAR, first_MDA_YEAR, last_MDA_year]],
+      columns = ["start_sim_year", "end_sim_year", "first_mda", "last_mda"],
+  )
+  mda_data.to_csv("mda_input.csv", index=False)
+#+end_src
+
+We therefore define a new function ~wrapped_model_func~ that conforms
+to this interface:
+
+#+begin_src R :session :tangle run_amis.R
+  reticulate::use_condaenv("trachoma", required = TRUE)
+  trachoma_module <- reticulate::import("trachoma")
+  model_func <- trachoma_module$Trachoma_Simulation
+
+  wrapped_model <- function(seeds, beta_values) {
+    ## write input on disk
+    input_file=sprintf("beta_values_job%g.csv", JOBID)
+    output_file=sprintf("prevalence_job%g.csv", JOBID)
+
+    write.csv(
+      cbind(seeds, beta_values),
+      file=input_file,
+      row.names=FALSE
+    )
+
+    model_func(
+      input_file,
+      "mda_input.csv",
+      output_file,
+      sprintf("infection_job%g.csv.csv", JOBID),
+      SaveOutput = F,
+      OutSimFilePath = NULL,
+      InSimFilePath = NULL
+    )
+
+    prevalence_output <- read.csv(output_file)
+    # TODO What does the wrapped model return?
+    return(100 * prevalence_output[, dim(prevalence_output)[2]])
+  }
+#+end_src
+
+#+RESULTS:
+
+#+NAME:amis-params
+| nsamples | delta | T | target_ess |
+|----------+-------+---+------------|
+|      100 |     5 | 2 |        250 |
+
+#+begin_src R :var PARAMS=amis-params JOBID=1 :session
+  prevalence_map = read.csv("test_prevalence_map.csv")
+  ess_not_reached <- FALSE
+  param_and_weights <- withCallingHandlers(
+    trachomAMIS::amis(prevalence_map = prevalence_map,
+		      transmission_model = wrapped_model,
+		      PARAMS
+		      ),
+    warning = function(e) ess_not_reached <<- TRUE
+  )
+#+end_src
+
+Now that we have values of infection parameter beta and statistical weight for ius, we want to
++ For each IU processed
+  - Sample N values of beta according to statistical weight
+    + For each sampled value, simulate model until 2019 (or any other final year)
+
+The trachoma model is able to run several simulations in concurrently,
+so we'll first sample the infection parameters, then run the model.
+
+#+begin_src python :results output
+  import pandas as pd
+  import numpy as np
+  from numpy.random import default_rng
+
+  data = pd.read_csv("param_iteration_5.csv")
+  rng = default_rng()
+  iu_weights = data.drop(["seeds", "beta", "sim_prev"], axis=1)
+  beta_values = data["beta"]
+  nsamples = 10
+  sampled_params = iu_weights.apply(
+      lambda x: np.random.choice(beta_values, (nsamples,), replace=False, p=x),
+      axis=0,
+      result_type="expand"
+  )
+  sampled_params.to_csv("sampled_params.csv", index=False)
+  print(sampled_params)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+        iu1       iu2       iu3
+0  0.127155  0.129625  0.169540
+1  0.129625  0.131915  0.118214
+2  0.113178  0.093602  0.113178
+3  0.118214  0.125667  0.129648
+4  0.130883  0.127155  0.157112
+5  0.136222  0.158355  0.146163
+6  0.127177  0.116718  0.173209
+7  0.119043  0.137818  0.101384
+8  0.116718  0.132659  0.127177
+9  0.093602  0.132037  0.116718
+#+end_example
+
+Now we run the model. The trachoma model takes all parameters from files on disk.
+- A file that with N lines ~seeds, beta value~
+- A file that describes the scenario (MDA years).
+  #+begin_example
+    "start_sim_year","end_sim_year","first_mda","last_mda"
+    2007,2019,2008,2017
+  #+end_example
+- A path for the simulated prevalence output 
+- A path for the simulated infection output
+
+Let's create the file describing the MDA years
+
+#+begin_src python
+  import os
+  import pandas as pd
+
+  mda_data = pd.DataFrame(
+      [[2007, 2019, 2008, 2017]],
+      columns = ["start_sim_year", "end_sim_year", "first_mda", "last_mda"],
+  )
+  mda_data_input = os.path.join("model_input", "mda_input.csv")
+  mda_data.to_csv(mda_data_input, index=False)
+#+end_src
+
+Then, for each iu, we write the input file containing seeds and beta
+parameter values and run the trachoma model.
+
+#+begin_src python
+    import pandas as pd
+    import os
+    from trachoma import Trachoma_Simulation
+
+    sampled_params = pd.read_csv("sampled_params.csv")
+    for iucode in sampled_params.columns:
+	beta_input = os.path.join("model_input", f"beta_values_{iucode}.csv")
+	# Using dataframe index as seed value
+	sampled_params[iucode].to_csv(beta_input, header=True, index=True)
+	Trachoma_Simulation(
+	    beta_input,
+	    mda_data_input,
+	    os.path.join("model_ouput", f"prevalence_{iucode}.csv"),
+	    os.path.join("model_output", f"infection_{iucode}.csv"),
+	    SaveOutput=True,
+	    OutSimFilePath=os.path.join("model_output", f"output_vals_{iucode}.p")
+	    InSimFilePath=None
+	)
+#+end_src
