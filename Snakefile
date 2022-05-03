@@ -56,3 +56,13 @@ rule estimate_parameter_weights:
         target_ess=250
     script:
         "scripts/sample_parameters.R"
+
+rule sample_parameter_values:
+    input:
+        "amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
+    output:
+        "data/sampled_parameters_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
+    params:
+        nsamples=10
+    script:
+        "scripts/sample_parameters.py"
