@@ -2,12 +2,9 @@ configfile: "config.yaml"
 
 def aggregate_input(wildcards):
     checkpoint_output = checkpoints.make_prevalence_maps.get(**wildcards).output[0]
-    wcards = glob_wildcards(os.path.join(checkpoint_output, "prev_map_{first_mda}_{last_mda}_group_{group}.csv"))
+    wcards = glob_wildcards(os.path.join(checkpoint_output, "prev_map_{slug}.csv"))
     return expand(
-        os.path.join("data", "amis_output_{first_mda}_{last_mda}_group_{group}.csv"),
-        first_mda=wcards.first_mda,
-        last_mda=wcards.last_mda,
-        group=wcards.group,
+        os.path.join("data", "amis_output_{slug}.csv"), slug=wcards.slug
     )
 
 rule all:
