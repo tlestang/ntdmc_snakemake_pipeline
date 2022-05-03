@@ -34,9 +34,9 @@ rule make_mda_file:
     output:
         "data/mda_input_{FIRST_MDA}_{LAST_MDA}.csv"
     params:
-        EMD_SIM_YEAR=2019
+        END_SIM_YEAR=2019
     script:
-        "make_mda_files.py"
+        "scripts/make_mda_files.py"
 
 rule sample_parameters:
     input:
