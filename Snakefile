@@ -38,10 +38,15 @@ rule make_mda_file:
     script:
         "scripts/make_mda_files.py"
 
+def prevalence_map_input(wildcards):
+    checkpoint_output = checkpoints.make_prevalence_maps.get(**wildcards).output[0]
+    return os.path.join(checkpoint_output, "prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv")
+
+
 rule sample_parameters:
     input:
         "data/mda_input_{FIRST_MDA}_{LAST_MDA}.csv",
-        "data/prevalence_maps/prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
+        prevalence_map_input
     output:
         "data/amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
     params:
