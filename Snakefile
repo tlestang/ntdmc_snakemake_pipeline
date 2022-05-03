@@ -44,5 +44,10 @@ rule sample_parameters:
         "data/prevalence_maps/prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
     output:
         "data/amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
-    shell:
-        "echo 'Hello' > {output}"
+    params:
+        nsamples=100,
+        delta=5,
+        T=2,
+        target_ess=250
+    script:
+        "scripts/sample_parameters.R"
