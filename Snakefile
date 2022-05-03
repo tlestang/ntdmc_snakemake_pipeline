@@ -43,7 +43,7 @@ def prevalence_map_input(wildcards):
     return os.path.join(checkpoint_output, "prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv")
 
 
-rule sample_parameters:
+rule estimate_parameter_weights:
     input:
         "data/mda_input_{FIRST_MDA}_{LAST_MDA}.csv",
         prevalence_map_input
