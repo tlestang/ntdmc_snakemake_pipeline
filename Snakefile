@@ -66,3 +66,9 @@ rule sample_parameter_values:
         nsamples=10
     script:
         "scripts/sample_parameters.py"
+
+rule prepare_mda_file:
+    output:
+        "data/mda_input.csv"
+    script:
+        "scripts/prepare_mda_file.py"
