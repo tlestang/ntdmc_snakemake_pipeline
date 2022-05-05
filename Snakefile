@@ -61,7 +61,7 @@ rule estimate_parameter_weights:
 
 rule sample_parameter_values:
     input:
-        "amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
+        "data/amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
     output:
         "data/sampled_parameters_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
     params:
