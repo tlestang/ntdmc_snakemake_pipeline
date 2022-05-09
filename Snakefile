@@ -26,7 +26,7 @@ checkpoint make_prevalence_maps:
     input:
         "data/FinalDataGroup.csv"
     output:
-        directory("data/prevalence_maps")
+        "data/prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
     script:
         "scripts/compute_prevalence_maps.py"
 
@@ -40,15 +40,10 @@ rule make_mda_file:
     script:
         "scripts/make_mda_files.py"
 
-def prevalence_map_input(wildcards):
-    checkpoint_output = checkpoints.make_prevalence_maps.get(**wildcards).output[0]
-    return os.path.join(checkpoint_output, "prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv")
-
-
 rule estimate_parameter_weights:
     input:
         "data/mda_input_{FIRST_MDA}_{LAST_MDA}.csv",
-        prevalence_map_input
+        "prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
     output:
         "data/amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
     params:
