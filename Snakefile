@@ -1,11 +1,10 @@
 configfile: "config.yaml"
 
 def aggregate_input(wildcards):
-    checkpoint_output = checkpoints.make_prevalence_maps.get(**wildcards).output[0]
-    wcards = glob_wildcards(os.path.join(checkpoint_output, "prev_map_{slug}.csv"))
-    return expand(
-        os.path.join("data", "sampled_parameters_{slug}.csv"), slug=wcards.slug
-    )
+    from pandas import read_csv
+    checkpoint_output = checkpoints.make_group_scenario_pairs.get(**wildcards).output[0]
+    grouped = read_csv(checkpoint_output).groupby( ["start_MDA", "last_MDA", "group"])
+    return [f"data/sampled_parameters_{name[0]}_{name[1]}_{name[2]}.csv" for name, _ in grouped]
 
 rule all:
     input:
@@ -14,7 +13,7 @@ rule all:
     script:
         "scripts/resimulate.py"
 
-rule make_group_scenario_pairs:
+checkpoint make_group_scenario_pairs:
     input:
         "data/FinalDataTest.csv",
     output:
