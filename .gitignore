@@ -1,0 +1,6 @@
+.Rhistory
+data/
+ess_not_reached/
+output/
+*~
+.snakemake/
