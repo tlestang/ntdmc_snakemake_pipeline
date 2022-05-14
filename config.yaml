@@ -1,0 +1,3 @@
+data: "data/FinalData.csv"
+max_prev: 60
+group_size: 10
