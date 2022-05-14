@@ -7,9 +7,9 @@ nsamples = 100
 data = pd.read_csv(snakemake.input[0]).set_index("IUCodes")
 rng = default_rng()
 iu_group = data[
-    (data["start_MDA"] == snakemake.wildcards["START_MDA"]) &&
-    (data["last_MDA"] == snakemake.wildcards["LAST_MDA"])  &&
-    (data["group"] == snakemake.wildcards["GROUP"])
+    (data["start_MDA"] == int(snakemake.wildcards["FIRST_MDA"])) &
+    (data["last_MDA"] == int(snakemake.wildcards["LAST_MDA"]))  &
+    (data["group"] == f"group_{snakemake.wildcards['GROUP']}")
 ]
 prevs = iu_group.apply(
     lambda s: rng.normal(s["Logit"], s["Sds"], nsamples),
