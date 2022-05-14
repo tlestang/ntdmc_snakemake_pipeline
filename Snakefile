@@ -22,7 +22,7 @@ rule make_group_scenario_pairs:
     script:
         "scripts/group_ius.py"
 
-checkpoint make_prevalence_maps:
+rule make_prevalence_maps:
     input:
         "data/FinalDataGroup.csv"
     output:
@@ -43,7 +43,7 @@ rule make_mda_file:
 rule estimate_parameter_weights:
     input:
         "data/mda_input_{FIRST_MDA}_{LAST_MDA}.csv",
-        "prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
+        "data/prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
     output:
         "data/amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
     params:
