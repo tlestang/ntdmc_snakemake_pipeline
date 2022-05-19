@@ -55,6 +55,18 @@ rule make_prevalence_maps:
         "scripts/compute_prevalence_maps.py"
 
 rule make_mda_file:
+    """
+    Prepare input file for trachoma model for a specific (first_mda, last_mda)
+    subset of IUs. Describes simulation start year, as well as MDA boundary years.
+    Simulation end year is described by params["END_SIM_YEAR"].
+    input:
+        CSV data describing one IU per row
+    output:
+        CSV data
+
+        start_sim_year,end_sim_year,first_mda,last_mda
+        2008,2019,2008,2017
+    """
     input:
         "data/FinalDataTest.csv",
     output:
