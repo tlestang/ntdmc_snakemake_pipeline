@@ -9,11 +9,24 @@ rule forward_simulate:
     script:
         "scripts/resimulate.py"
 
-checkpoint make_group_scenario_pairs:
+
+checkpoint group_ius:
+    """
+    Group each iu in input data together according to mean prevalence value.
+    For example
+    group 1: 0 < prev <= 10%
+    group 2: 10 < prev <= 20%
+    ...
+    input:
+        CSV data describing one IU per row, and columns 'Logit' and 'Sds'
+        describing logit and standard deviation values for each IU.
+    output:
+        Input CSV data augmented with extra column 'group'.
+    """
     input:
         "data/FinalDataTest.csv",
     output:
-        "data/FinalDataGroup.csv"
+        "data/FinalDataGroup.csv",
     script:
         "scripts/group_ius.py"
 
