@@ -1,13 +1,15 @@
 import pandas as pd
 import os
+from pathlib import Path
 from trachoma import Trachoma_Simulation
 
-pin = Path("data/model_input")
+slug = "_".join(snakemake.wildcards)
+pin = Path(f"data/model_input_{slug}")
 pin.mkdir(parents=True, exist_ok=True)
-pout = Path("data/model_output")
+pout = Path(f"data/model_output_{slug}")
 pout.mkdir(parents=True, exist_ok=True)
     
-sampled_params = pd.read_csv("snakemake.input[0]")
+sampled_params = pd.read_csv(snakemake.input[0])
 for iucode in sampled_params.columns:
     beta_input = pin / f"beta_values_{iucode}.csv"
     # Using dataframe index as seed value

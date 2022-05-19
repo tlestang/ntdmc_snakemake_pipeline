@@ -1,15 +1,11 @@
 configfile: "config.yaml"
 
-def aggregate_input(wildcards):
-    from pandas import read_csv
-    checkpoint_output = checkpoints.make_group_scenario_pairs.get(**wildcards).output[0]
-    grouped = read_csv(checkpoint_output).groupby( ["start_MDA", "last_MDA", "group"])
-    return [f"data/sampled_parameters_{name[0]}_{name[1]}_{name[2]}.csv" for name, _ in grouped]
-
-rule all:
+rule forward_simulate:
     input:
-        aggregate_input,
+        "data/sampled_parameters_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
         "data/mda_input.csv"
+    output:
+        directory("data/model_output_{FIRST_MDA}_{LAST_MDA}_{GROUP}")
     script:
         "scripts/resimulate.py"
 
