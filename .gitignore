@@ -4,3 +4,4 @@ ess_not_reached/
 output/
 *~
 .snakemake/
+*.csv
