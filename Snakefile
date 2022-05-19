@@ -31,10 +31,26 @@ checkpoint group_ius:
         "scripts/group_ius.py"
 
 rule make_prevalence_maps:
+    """
+    Sample params['nsamples'] prevalence values for each IU in
+    a (first_mda, last_mda, group) group.
     input:
-        "data/FinalDataGroup.csv"
+        CSV data describing one IU per row:
+
+        Logit,Sds,start_MDA,last_MDA,group
+        -1.814302776,0.243590266,2008,2017,group_2
+        ...
+
     output:
-        "data/prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv"
+        CSV data with one row per IU in (first_mda, last_mda, group) group
+        and params["nsamples"] columns.
+    """
+    input:
+        "data/FinalDataGroup.csv",
+    output:
+        "data/prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
+    params:
+        nsamples=100,
     script:
         "scripts/compute_prevalence_maps.py"
 

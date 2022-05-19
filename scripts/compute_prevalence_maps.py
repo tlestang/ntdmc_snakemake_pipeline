@@ -3,7 +3,7 @@ import numpy as np
 from numpy.random import default_rng
 from pathlib import Path
 
-nsamples = 100
+nsamples = snakemake.params["nsamples"]
 data = pd.read_csv(snakemake.input[0]).set_index("IUCodes")
 rng = default_rng()
 iu_group = data[
