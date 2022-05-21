@@ -2,6 +2,17 @@ configfile: "config.yaml"
 
 
 rule forward_simulate:
+    """
+    Simulate infection model for several values of beta parameters, for
+    all IUs in a given (first_mda, last_mda, group) subset.
+    Input:
+        - CSV data with one col per IU and one row per value of
+          infection parameter.
+        - CSV data describing start and end simulation years, and
+          MDA boundary years.
+    Output:
+        Directory containing model output file for all IUs in subset.
+    """
     input:
         "data/sampled_parameters_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
         "data/mda_input.csv",
@@ -81,6 +92,22 @@ rule make_mda_file:
 
 
 rule estimate_parameter_weights:
+    """
+    Runs AMIS for a given (first_mda, last_mda, group) subset of IUs.
+    Input:
+        prevalence map: CSV data with N prevalence value samples
+        per IU, one row per IU.
+        mda_input: CSV data describing simulation start and end year,
+        as well as MDA first and last year.
+    Output:
+        CSV data with columns:
+            - seeds: Initial seed for trachoma model
+            - beta: Sampled beta parameter value
+            - sim_prev: Simulated end_year prevalence value
+            - then one column per IU in (fisrt_mda, last_mda, group)
+              subset, values being statistical weight of beta parameter.
+        One row per AMIS iteration.
+    """
     input:
         "data/mda_input_{FIRST_MDA}_{LAST_MDA}.csv",
         "data/prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
@@ -96,6 +123,14 @@ rule estimate_parameter_weights:
 
 
 rule sample_parameter_values:
+    """
+    Samples params["nsamples"] parameter values among weighted values
+    generated from the AMIS algorithm.
+    Input:
+        AMIS CSV output data
+    Output:
+        CSV data with one column per IU and params["nsamples"] rows.
+    """
     input:
         "data/amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
     output:
@@ -107,6 +142,15 @@ rule sample_parameter_values:
 
 
 rule prepare_mda_file:
+    """
+    Create input file for forward simulation of infection model.
+    Describes start and end simulation year, as well of MDA boundary years.
+    Output:
+        CSV data
+
+        start_sim_year,end_sim_year,first_mda,last_mda
+        2008,2019,2008,2017
+    """
     output:
         "data/mda_input.csv",
     script:
