@@ -1,11 +1,11 @@
 ### Description
 
-This is a [snakemake](https://snakemake.readthedocs.io/en/stable/)
-workflow implementing the fitting pipeline for the NTDMC trachoma
-model. Starting from geostatistical infection data, this workflow
-simulates spread of trachoma for an (statistical) ensemble of
-infection parameter values, for each implementation unit present in
-the original data.
+This [snakemake](https://snakemake.readthedocs.io/en/stable/) workflow
+implements a fitting pipeline for the NTDMC trachoma model. Starting
+from geostatistical infection data, this workflow simul spread of
+trachoma for an (statistical) ensemble of models with different beta
+parameter values, for each implementation unit present in the original
+data.
 
 The simplified workflow can visualised as:
 
@@ -71,3 +71,78 @@ snakemake --cores 4 data/model_output_{2008_2019_level_3,2008_2017_level_2}
 ```
 ### Under the hood
 
+The fitting pipeline is defined in the [Snakefile](./Snakefile). This
+file breaks down the pipeline into a set of rules with input data and
+output data. Snakemake processes the Snakefile and builds a dependency
+graph connecting rules that procude output that other rules consume as
+input. Snakemake then works this graph backward, executing rules in
+the right order to produce the final output.
+
+#### Wildcards
+
+Most of the rules in the workflow are based on *wildcards*, such as
+`{FIRST_MDA}`, `{LAST_MDA}` or `{GROUP}`. For example:
+
+```python
+rule sample_parameter_values:
+    input:
+        "amis_output_{FIRST_MDA}_{LAST_MDA}_{GROUP}.csv",
+    output:
+        "sampled_parameters_{FIRST_MDA}_{LAST_MDA}_{GROUP}.csv",
+    params:
+        nsamples=10,
+    script:
+        "scripts/sample_parameters.py"
+```
+
+The above rule tells snakemake how to produce files named as
+`sampled_parameters_{FIRST_MDA}_{LAST_MDA}_{GROUP}.csv`, given input
+file `amis_output_{FIRST_MDA}_{LAST_MDA}_{GROUP}.csv`, for any value
+of the three wildcards. For instance,
+
+```shell
+snakemake sampled_parameters_2008_2018_2.csv
+```
+
+will try to execute rule `sample_parameter_values` to produce
+`sampled_parameters_2008_2018_2.csv` from
+`amis_output_2008_2018_2.csv`, if it exists.
+
+#### The target rule `all`
+
+Running 
+
+```shell
+snakemake
+```
+
+will execute the target (default) rule `all`.
+
+```python
+def aggregate_input(wildcards):
+    from pandas import read_csv
+
+    checkpoint_output = checkpoints.group_ius.get(**wildcards).output[0]
+    grouped = read_csv(checkpoint_output).groupby(["start_MDA", "last_MDA", "group"])
+    return [f"data/model_output_{name[0]}_{name[1]}_{name[2]}" for name, _ in grouped]
+
+
+rule all:
+    input:
+        aggregate_input,
+```
+
+Its input is defined as a Python function that builds and return the
+list of model output directories for each group of IUs (`first_mda`,
+`last_mda`, `level`). It does so by reading the input data augmented
+with the `level` column (the output of the `group_ius` rule) and
+grouping rows by values of columns `first_mda`, `last_mda` and
+`level`.
+
+Because, the output of rule `group_ius` *must* have been created to
+determine input of ruel `all`, rule `group_ius` is defined as a
+checkpoint rule. In practice, Snakemake will register that rule `all`
+requires the output of rule `group_ius`, execute `group_ius`, and
+re-evaluate the dependency graph. See [Data-dependent conditional
+execution](https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html?highlight=checkpoint#data-dependent-conditional-execution)
+in the Snakemake docs.
