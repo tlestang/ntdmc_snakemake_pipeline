@@ -3,12 +3,12 @@ import os
 from pathlib import Path
 from trachoma import Trachoma_Simulation
 
-slug = "_".join(snakemake.wildcards)
+group = snakemake.wildcards.pop()
+slug = "_".join(snakemake.wildcards) + f"_group_{group}"
 pin = Path(f"data/model_input_{slug}")
 pin.mkdir(parents=True, exist_ok=True)
 pout = Path(f"data/model_output_{slug}")
 pout.mkdir(parents=True, exist_ok=True)
-    
 sampled_params = pd.read_csv(snakemake.input[0])
 for iucode in sampled_params.columns:
     beta_input = pin / f"beta_values_{iucode}.csv"
