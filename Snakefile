@@ -1,25 +1,17 @@
 configfile: "config.yaml"
 
 
-rule forward_simulate:
-    """
-    Simulate infection model for several values of beta parameters, for
-    all IUs in a given (first_mda, last_mda, group) subset.
-    Input:
-        - CSV data with one col per IU and one row per value of
-          infection parameter.
-        - CSV data describing start and end simulation years, and
-          MDA boundary years.
-    Output:
-        Directory containing model output file for all IUs in subset.
-    """
+def aggregate_input(wildcards):
+    from pandas import read_csv
+
+    checkpoint_output = checkpoints.group_ius.get(**wildcards).output[0]
+    grouped = read_csv(checkpoint_output).groupby(["start_MDA", "last_MDA", "group"])
+    return [f"data/model_output_{name[0]}_{name[1]}_{name[2]}" for name, _ in grouped]
+
+
+rule all:
     input:
-        "data/sampled_parameters_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
-        "data/mda_input.csv",
-    output:
-        directory("data/model_output_{FIRST_MDA}_{LAST_MDA}_{GROUP}"),
-    script:
-        "scripts/resimulate.py"
+        aggregate_input,
 
 
 checkpoint group_ius:
@@ -155,3 +147,24 @@ rule prepare_mda_file:
         "data/mda_input.csv",
     script:
         "scripts/prepare_mda_file.py"
+
+
+rule forward_simulate:
+    """
+    Simulate infection model for several values of beta parameters, for
+    all IUs in a given (first_mda, last_mda, group) subset.
+    Input:
+        - CSV data with one col per IU and one row per value of
+          infection parameter.
+        - CSV data describing start and end simulation years, and
+          MDA boundary years.
+    Output:
+        Directory containing model output file for all IUs in subset.
+    """
+    input:
+        "data/sampled_parameters_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
+        "data/mda_input.csv",
+    output:
+        directory("data/model_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}"),
+    script:
+        "scripts/resimulate.py"
