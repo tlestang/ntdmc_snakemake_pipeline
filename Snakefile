@@ -28,7 +28,7 @@ checkpoint group_ius:
         Input CSV data augmented with extra column 'group'.
     """
     input:
-        "data/FinalDataTest.csv",
+        config["data"],
     output:
         "results/FinalDataGroup.csv",
     script:
