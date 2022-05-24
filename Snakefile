@@ -6,7 +6,7 @@ def aggregate_input(wildcards):
 
     checkpoint_output = checkpoints.group_ius.get(**wildcards).output[0]
     grouped = read_csv(checkpoint_output).groupby(["start_MDA", "last_MDA", "group"])
-    return [f"data/model_output_{name[0]}_{name[1]}_{name[2]}" for name, _ in grouped]
+    return [f"results/model_output_{name[0]}_{name[1]}_{name[2]}" for name, _ in grouped]
 
 
 rule all:
@@ -30,7 +30,7 @@ checkpoint group_ius:
     input:
         "data/FinalDataTest.csv",
     output:
-        "data/FinalDataGroup.csv",
+        "results/FinalDataGroup.csv",
     script:
         "scripts/group_ius.py"
 
@@ -51,9 +51,9 @@ rule make_prevalence_maps:
         and params["nsamples"] columns.
     """
     input:
-        "data/FinalDataGroup.csv",
+        "results/FinalDataGroup.csv",
     output:
-        "data/prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
+        "results/prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
     params:
         nsamples=config["nsamples_prevalence_map"],
     script:
@@ -74,9 +74,9 @@ rule make_mda_file:
         2008,2019,2008,2017
     """
     input:
-        "data/FinalDataTest.csv",
+        "results/FinalDataTest.csv",
     output:
-        "data/mda_input_{FIRST_MDA}_{LAST_MDA}.csv",
+        "results/mda_input_{FIRST_MDA}_{LAST_MDA}.csv",
     params:
         end_sim_year=config["end_sim_year"],
     script:
@@ -101,10 +101,10 @@ rule estimate_parameter_weights:
         One row per AMIS iteration.
     """
     input:
-        "data/mda_input_{FIRST_MDA}_{LAST_MDA}.csv",
-        "data/prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
+        "results/mda_input_{FIRST_MDA}_{LAST_MDA}.csv",
+        "results/prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
     output:
-        "data/amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
+        "results/amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
     params:
         nsamples=config["AMIS"]["nsamples"],
         delta=config["AMIS"]["delta"],
@@ -124,9 +124,9 @@ rule sample_parameter_values:
         CSV data with one column per IU and params["nsamples"] rows.
     """
     input:
-        "data/amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
+        "results/amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
     output:
-        "data/sampled_parameters_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
+        "results/sampled_parameters_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
     params:
         nsamples=config["nsamples_beta"],
     script:
@@ -144,7 +144,7 @@ rule prepare_mda_file:
         2008,2019,2008,2017
     """
     output:
-        "data/mda_input.csv",
+        "results/mda_input.csv",
     script:
         "scripts/prepare_mda_file.py"
 
@@ -162,9 +162,9 @@ rule forward_simulate:
         Directory containing model output file for all IUs in subset.
     """
     input:
-        "data/sampled_parameters_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
-        "data/mda_input.csv",
+        "results/sampled_parameters_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
+        "results/mda_input.csv",
     output:
-        directory("data/model_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}"),
+        directory("results/model_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}"),
     script:
         "scripts/resimulate.py"
