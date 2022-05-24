@@ -55,7 +55,7 @@ rule make_prevalence_maps:
     output:
         "data/prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
     params:
-        nsamples=100,
+        nsamples=config["nsamples_prevalence_map"],
     script:
         "scripts/compute_prevalence_maps.py"
 
@@ -64,7 +64,7 @@ rule make_mda_file:
     """
     Prepare input file for trachoma model for a specific (first_mda, last_mda)
     subset of IUs. Describes simulation start year, as well as MDA boundary years.
-    Simulation end year is described by params["END_SIM_YEAR"].
+    Simulation end year is described by params["end_sim_year"].
     input:
         CSV data describing one IU per row
     output:
@@ -78,7 +78,7 @@ rule make_mda_file:
     output:
         "data/mda_input_{FIRST_MDA}_{LAST_MDA}.csv",
     params:
-        END_SIM_YEAR=2019,
+        end_sim_year=config["end_sim_year"],
     script:
         "scripts/make_mda_files.py"
 
@@ -106,10 +106,10 @@ rule estimate_parameter_weights:
     output:
         "data/amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
     params:
-        nsamples=100,
-        delta=5,
-        T=2,
-        target_ess=250,
+        nsamples=config["AMIS"]["nsamples"],
+        delta=config["AMIS"]["delta"],
+        T=config["AMIS"]["T"],
+        target_ess=config["AMIS"]["target_ess_size"],
     script:
         "scripts/sample_parameters.R"
 
@@ -128,7 +128,7 @@ rule sample_parameter_values:
     output:
         "data/sampled_parameters_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
     params:
-        nsamples=10,
+        nsamples=config["nsamples_beta"],
     script:
         "scripts/sample_parameters.py"
 

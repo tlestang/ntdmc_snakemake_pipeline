@@ -1,3 +1,9 @@
 data: "data/FinalData.csv"
-max_prev: 60
-group_size: 10
+nsamples_prevalence_map: 100
+end_sim_year: 2019
+AMIS:
+  nsamples: 100
+  delta: 5
+  T: 2
+  target_ess_size: 250
+nsamples_beta: 10
