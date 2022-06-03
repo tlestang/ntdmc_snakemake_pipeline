@@ -1,5 +1,6 @@
 configfile: "config.yaml"
 
+from trachoma import Trachoma_Simulation
 
 def aggregate_input(wildcards):
     from pandas import read_csv
@@ -144,6 +145,27 @@ rule sample_parameter_values:
         nsamples=config["nsamples_beta"],
     script:
         "scripts/sample_parameters.py"
+
+
+def get_input_mda_file(wildcards):
+    start_MDA, last_MDA, _ = get_subset_from_IU_code(wildcards)
+    return f"results/mda_input_{start_MDA}_{last_MDA}.csv"
+
+rule resimulate_history:
+    input:
+        "results/sampled_parameters_{IUCODE}.csv",
+        get_input_mda_file,
+    output:
+        "results/output_state_{IUCODE}.p"
+    run:
+        Trachoma_Simulation(
+            input[0],
+            input[1],
+            PrevFilePath="results/PrevFilePath.csv",
+            InfectFilePath="results/InfectFilePath.csv",
+            SaveOutput=True,
+            OutSimFilePath=output[0],
+        )
 
 
 rule prepare_mda_file:
