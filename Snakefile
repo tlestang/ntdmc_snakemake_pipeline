@@ -197,9 +197,18 @@ rule forward_simulate:
         Directory containing model output file for all IUs in subset.
     """
     input:
-        "results/sampled_parameters_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
-        "results/mda_input.csv",
+        sampled_parameters="results/sampled_parameters_{IUCODE}.csv",
+        saved_state="results/output_state_{IUCODE}.p",
+        mda_input="results/mda_input.csv",
     output:
-        directory("results/model_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}"),
-    script:
-        "scripts/resimulate.py"
+        infection="results/infection_{IUCODE}.csv",
+        prevalence="results/prevalence_{IUCODE}.csv",
+    run:
+        Trachoma_Simulation(
+            input.sampled_parameters,
+            input.mda_input,
+            PrevFilePath=output.prevalence,
+            InfectFilePath=output.infection,
+            SaveOutput=False,
+            InSimFilePath=input.saved_state,
+        )
