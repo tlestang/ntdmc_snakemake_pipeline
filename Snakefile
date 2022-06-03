@@ -114,6 +114,19 @@ rule estimate_parameter_weights:
         "scripts/sample_parameters.R"
 
 
+def get_subset_from_IU_code(wildcards):
+    from pandas import read_csv
+    checkpoint_output = checkpoints.group_ius.get(**wildcards).output[0]
+    iucode = wildcards["IUCODE"]
+    row = read_csv(checkpoint_output).set_index("IUCodes").loc[iucode]
+    return (row["start_MDA"], row["last_MDA"], row["group"])
+
+
+def get_input_amis_file(wildcards):
+    start_MDA, last_MDA, group = get_subset_from_IU_code(wildcards)
+    return f"results/amis_output_{start_MDA}_{last_MDA}_{group}.csv"
+
+
 rule sample_parameter_values:
     """
     Samples params["nsamples"] parameter values among weighted values
@@ -124,9 +137,9 @@ rule sample_parameter_values:
         CSV data with one column per IU and params["nsamples"] rows.
     """
     input:
-        "results/amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
+        get_input_amis_file,
     output:
-        "results/sampled_parameters_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
+        "results/sampled_parameters_{IUCODE}.csv",
     params:
         nsamples=config["nsamples_beta"],
     script:
