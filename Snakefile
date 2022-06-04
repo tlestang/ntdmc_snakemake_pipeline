@@ -4,10 +4,8 @@ from trachoma import Trachoma_Simulation
 
 def aggregate_input(wildcards):
     from pandas import read_csv
-
-    checkpoint_output = checkpoints.group_ius.get(**wildcards).output[0]
-    grouped = read_csv(checkpoint_output).groupby(["start_MDA", "last_MDA", "group"])
-    return [f"results/model_output_{name[0]}_{name[1]}_{name[2]}" for name, _ in grouped]
+    data = read_csv(config["data"])
+    return [f"results/infection_{iucode}.csv" for iucode in data["IUCodes"]]
 
 
 rule all:
