@@ -2,29 +2,34 @@ digraph snakemake_dag {
     graph[bgcolor=white, margin=0];
     node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
     edge[penwidth=2, color=grey];
-	0[label = "forward_simulate", color = "0.17 0.6 0.85", style="rounded"];
-	1[label = "sample_parameter_values", color = "0.50 0.6 0.85", style="rounded"];
-	2[label = "estimate_parameter_weights", color = "0.42 0.6 0.85", style="rounded"];
-	4[label = "make_prevalence_maps\nFIRST_MDA: 2008\nGROUP: 3\nLAST_MDA: 2019", color = "0.33 0.6 0.85", style="rounded"];
-	5[label = "group_ius", color = "0.58 0.6 0.85", style="rounded"];
-	7[label = "forward_simulate", color = "0.17 0.6 0.85", style="rounded"];
-	8[label = "sample_parameter_values", color = "0.50 0.6 0.85", style="rounded"];
-	9[label = "estimate_parameter_weights", color = "0.42 0.6 0.85", style="rounded"];
-	11[label = "make_prevalence_maps\nFIRST_MDA: 2008\nGROUP: 2\nLAST_MDA: 2017", color = "0.33 0.6 0.85", style="rounded"];
-	12[label = "forward_simulate", color = "0.17 0.6 0.85", style="rounded"];
-	13[label = "sample_parameter_values", color = "0.50 0.6 0.85", style="rounded"];
-	14[label = "estimate_parameter_weights", color = "0.42 0.6 0.85", style="rounded"];
-	16[label = "make_prevalence_maps\nFIRST_MDA: 2015\nGROUP: 5\nLAST_MDA: 2019", color = "0.33 0.6 0.85", style="rounded"];
-	1 -> 0
-	2 -> 1
-	4 -> 2
-	5 -> 4
-	8 -> 7
-	9 -> 8
-	11 -> 9
-	5 -> 11
-	13 -> 12
-	14 -> 13
-	16 -> 14
-	5 -> 16
+	0[label = "forward_simulate", color = "0.15 0.6 0.85", style="rounded"];
+	1[label = "group_ius", color = "0.52 0.6 0.85", style="rounded,dashed"];
+	3[label = "forward_simulate", color = "0.15 0.6 0.85", style="rounded"];
+	4[label = "forward_simulate", color = "0.15 0.6 0.85", style="rounded"];
+	5[label = "sample_parameter_values\nIUCODE: ETH18604", color = "0.59 0.6 0.85", style="rounded"];
+	6[label = "estimate_parameter_weights", color = "0.30 0.6 0.85", style="rounded"];
+	8[label = "make_prevalence_maps\nFIRST_MDA: 2008\nGROUP: 3\nLAST_MDA: 2019", color = "0.00 0.6 0.85", style="rounded"];
+	9[label = "resimulate_history", color = "0.22 0.6 0.85", style="rounded"];
+	10[label = "sample_parameter_values\nIUCODE: ETH18644", color = "0.59 0.6 0.85", style="rounded"];
+	11[label = "estimate_parameter_weights", color = "0.30 0.6 0.85", style="rounded"];
+	13[label = "make_prevalence_maps\nFIRST_MDA: 2008\nGROUP: 2\nLAST_MDA: 2017", color = "0.00 0.6 0.85", style="rounded"];
+	14[label = "resimulate_history", color = "0.22 0.6 0.85", style="rounded"];
+	15[label = "sample_parameter_values\nIUCODE: ETH18551", color = "0.59 0.6 0.85", style="rounded"];
+	16[label = "resimulate_history", color = "0.22 0.6 0.85", style="rounded"];
+	5 -> 0
+	9 -> 0
+	10 -> 3
+	14 -> 3
+	15 -> 4
+	16 -> 4
+	6 -> 5
+	8 -> 6
+	1 -> 8
+	5 -> 9
+	11 -> 10
+	13 -> 11
+	1 -> 13
+	10 -> 14
+	11 -> 15
+	15 -> 16
 }            
