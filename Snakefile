@@ -73,7 +73,7 @@ rule make_mda_file:
         2008,2019,2008,2017
     """
     input:
-        "results/FinalDataTest.csv",
+        config["data"],
     output:
         "results/mda_input_{FIRST_MDA}_{LAST_MDA}.csv",
     params:
