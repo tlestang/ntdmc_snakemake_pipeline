@@ -15,21 +15,21 @@ rule all:
 
 checkpoint group_ius:
     """
-    Group each iu in input data together according to mean prevalence value.
+    Assign each iu a prevalence level according to mean prevalence value.
     For example
-    group 1: 0 < prev <= 10%
-    group 2: 10 < prev <= 20%
+    level 1: 0 < prev <= 10%
+    level 2: 10 < prev <= 20%
     ...
     input:
         CSV data describing one IU per row, and columns 'Logit' and 'Sds'
         describing logit and standard deviation values for each IU.
     output:
-        Input CSV data augmented with extra column 'group'.
+        Input CSV data augmented with extra column 'level'.
     """
     input:
         config["data"],
     output:
-        "results/FinalDataGroup.csv",
+        "results/FinalDataLevel.csv",
     script:
         "scripts/group_ius.py"
 
@@ -41,8 +41,8 @@ rule make_prevalence_maps:
     input:
         CSV data describing one IU per row:
 
-        Logit,Sds,start_MDA,last_MDA,group
-        -1.814302776,0.243590266,2008,2017,group_2
+        Logit,Sds,start_MDA,last_MDA,level
+        -1.814302776,0.243590266,2008,2017,level_2
         ...
 
     output:
@@ -50,9 +50,9 @@ rule make_prevalence_maps:
         and params["nsamples"] columns.
     """
     input:
-        "results/FinalDataGroup.csv",
+        "results/FinalDataLevel.csv",
     output:
-        "results/prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
+        "results/prev_map_{FIRST_MDA}_{LAST_MDA}_level_{LEVEL}.csv",
     params:
         nsamples=config["nsamples_prevalence_map"],
     script:
@@ -101,9 +101,9 @@ rule estimate_parameter_weights:
     """
     input:
         "results/mda_input_{FIRST_MDA}_{LAST_MDA}.csv",
-        "results/prev_map_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
+        "results/prev_map_{FIRST_MDA}_{LAST_MDA}_level_{LEVEL}.csv",
     output:
-        "results/amis_output_{FIRST_MDA}_{LAST_MDA}_group_{GROUP}.csv",
+        "results/amis_output_{FIRST_MDA}_{LAST_MDA}_level_{LEVEL}.csv",
     params:
         nsamples=config["AMIS"]["nsamples"],
         delta=config["AMIS"]["delta"],
@@ -118,12 +118,12 @@ def get_subset_from_IU_code(wildcards):
     checkpoint_output = checkpoints.group_ius.get(**wildcards).output[0]
     iucode = wildcards["IUCODE"]
     row = read_csv(checkpoint_output).set_index("IUCodes").loc[iucode]
-    return (row["start_MDA"], row["last_MDA"], row["group"])
+    return (row["start_MDA"], row["last_MDA"], row["level"])
 
 
 def get_input_amis_file(wildcards):
-    start_MDA, last_MDA, group = get_subset_from_IU_code(wildcards)
-    return f"results/amis_output_{start_MDA}_{last_MDA}_{group}.csv"
+    start_MDA, last_MDA, level = get_subset_from_IU_code(wildcards)
+    return f"results/amis_output_{start_MDA}_{last_MDA}_{level}.csv"
 
 
 rule sample_parameter_values:

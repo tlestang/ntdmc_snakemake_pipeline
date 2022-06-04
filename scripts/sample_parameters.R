@@ -4,8 +4,8 @@ model_func <- trachoma_module$Trachoma_Simulation
 
 wrapped_model <- function(seeds, beta_values) {
     ## write input on disk
-    input_file=sprintf("beta_values_job%s.csv", snakemake@wildcards[["GROUP"]])
-    output_file=sprintf("prevalence_job%s.csv", snakemake@wildcards[["GROUP"]])
+    input_file=sprintf("beta_values_job%s.csv", snakemake@wildcards[["LEVEL"]])
+    output_file=sprintf("prevalence_job%s.csv", snakemake@wildcards[["LEVEL"]])
 
     write.csv(
         cbind(seeds, beta_values),
@@ -17,7 +17,7 @@ wrapped_model <- function(seeds, beta_values) {
         input_file,
         snakemake@input[[1]],
         output_file,
-        sprintf("infection_job%s.csv.csv", snakemake@wildcards[["GROUP"]]),
+        sprintf("infection_job%s.csv.csv", snakemake@wildcards[["LEVEL"]]),
         SaveOutput = F,
         OutSimFilePath = NULL,
         InSimFilePath = NULL
