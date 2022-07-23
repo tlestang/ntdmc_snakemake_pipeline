@@ -4,7 +4,11 @@ from numpy.random import default_rng
 
 data = pd.read_csv(snakemake.input[0])
 rng = default_rng()
-iu_weights = data.drop(["seeds", "beta", "sim_prev"], axis=1)
+
+cols_to_drop = list(data.filter(regex = "prev"))
+cols_to_drop += ["seeds", "beta"]
+iu_weights = data.drop(cols_to_drop, axis=1)
+
 nsamples = snakemake.params["nsamples"]
 for col in iu_weights:
     df = data[["seeds", "beta"]].sample(
