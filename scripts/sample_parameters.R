@@ -23,9 +23,19 @@ wrapped_model <- function(seeds, beta_values) {
         InSimFilePath = NULL
     )
 
-    prevalence_output <- read.csv(output_file)
-    ## TODO What does the wrapped model return?
-    return(100 * prevalence_output[, dim(prevalence_output)[2]])
+    # "prev" == "prevalence"
+    prev_output <- read.csv(output_file)
+
+    ## Trachoma model output file is
+    ##            seed, beta, time1, time2, time3 ...
+    ## sample 1
+    ## sample 2
+    ## ...
+    ## We are only interested in the last column
+    end_prev_values = 100 * prev_output[, dim(prev_output)[2]]
+    ## Return value should be nsamples x ntimepoints (1) matrix
+    returned_prev = matrix(end_prev_values, length(end_prev_values), 1)
+    return(returned_prev)
 }
 
 prevalence_map = read.csv(snakemake@input[[2]])
