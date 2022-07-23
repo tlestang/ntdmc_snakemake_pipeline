@@ -105,10 +105,13 @@ rule estimate_parameter_weights:
     output:
         "results/amis_output_{FIRST_MDA}_{LAST_MDA}_level_{LEVEL}.csv",
     params:
+        delta=config["AMIS"]["smooth_param"],
         nsamples=config["AMIS"]["nsamples"],
-        delta=config["AMIS"]["delta"],
-        T=config["AMIS"]["T"],
+        mixture_samples=config["AMIS"]["mixture_samples"],
+        df=config["AMIS"]["df"],
         target_ess=config["AMIS"]["target_ess_size"],
+        log=config["AMIS"]["log_scale"],
+        max_iters=config["AMIS"]["max_iterations"],
     script:
         "scripts/sample_parameters.R"
 

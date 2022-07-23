@@ -56,12 +56,12 @@ dprior <- function(x,log=FALSE) {
 prior<-list(rprior=rprior,dprior=dprior)
 
 prevalence_map = read.csv(snakemake@input[[2]])
-ess_not_reached <- FALSE
-param_and_weights <- withCallingHandlers(
-    trachomAMIS::amis(prevalence_map = prevalence_map,
-                      transmission_model = wrapped_model,
-                      snakemake@params
-                      ),
-    warning = function(e) ess_not_reached <<- TRUE
-)
+
+param_and_weights = trachomAMIS::amis(prevalence_map = prevalence_map,
+                                      transmission_model = wrapped_model,
+                                      prior = prior,
+                                      amis_params = snakemake@params,
+                                      seed = 1
+                                      )
+
 write.csv(param_and_weights, snakemake@output[[1]], row.names=FALSE)
