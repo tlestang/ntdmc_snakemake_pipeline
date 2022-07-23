@@ -38,6 +38,23 @@ wrapped_model <- function(seeds, beta_values) {
     return(returned_prev)
 }
 
+# 1D exponential prior function
+rprior <- function(n) {
+  params<-matrix(NA,n,1)
+  colnames(params)<-c("beta")
+  params[,1]<-rexp(n)
+  return(params)
+}
+
+dprior <- function(x,log=FALSE) {
+  if (log) {
+    return(sum(dexp(x,log=T)))
+  } else {
+    return(prod(dexp(x)))
+  }
+}
+prior<-list(rprior=rprior,dprior=dprior)
+
 prevalence_map = read.csv(snakemake@input[[2]])
 ess_not_reached <- FALSE
 param_and_weights <- withCallingHandlers(
