@@ -59,5 +59,19 @@ rule make_prevalence_maps:
     script:
         "scripts/compute_prevalence_maps.py"
 
+rule the_last_rule:
+    input:
+        "results/prev_map_{FIRST_MDA}_{LAST_MDA}_level_{LEVEL}.csv"
+    output:
+        "results/output_{FIRST_MDA}_{LAST_MDA}_level_{LEVEL}.csv"
+    run:
+        import time
+        import socket
+
+        with open(output[0], "w") as f:
+            msg = f"Hello from {socket.gethostname()}!\n"
+            f.write(msg)
+        time.sleep(2)
+
 
 
