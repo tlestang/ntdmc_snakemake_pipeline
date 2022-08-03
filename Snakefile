@@ -55,6 +55,7 @@ rule make_prevalence_maps:
         "results/prev_map_{FIRST_MDA}_{LAST_MDA}_level_{LEVEL}.csv",
     params:
         nsamples=config["nsamples_prevalence_map"],
+    group: "amis"
     script:
         "scripts/compute_prevalence_maps.py"
 
@@ -78,6 +79,7 @@ rule make_mda_file:
         "results/mda_input_{FIRST_MDA}_{LAST_MDA}.csv",
     params:
         end_sim_year=config["end_sim_year"],
+    group: "amis"
     script:
         "scripts/make_mda_files.py"
 
@@ -109,6 +111,7 @@ rule estimate_parameter_weights:
         delta=config["AMIS"]["delta"],
         T=config["AMIS"]["T"],
         target_ess=config["AMIS"]["target_ess_size"],
+    group: "amis"
     script:
         "scripts/sample_parameters.R"
 
