@@ -1,7 +1,5 @@
 configfile: "config.yaml"
 
-from trachoma import Trachoma_Simulation
-
 def aggregate_input(wildcards):
     from pandas import read_csv
     data = read_csv(config["data"])
@@ -205,6 +203,8 @@ rule forward_simulate:
         infection="results/infection_{IUCODE}.csv",
         prevalence="results/prevalence_{IUCODE}.csv",
     run:
+        from trachoma import Trachoma_Simulation
+
         Trachoma_Simulation(
             input.sampled_parameters,
             input.mda_input,
