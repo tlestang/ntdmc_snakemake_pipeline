@@ -1,4 +1,4 @@
-data: "data/FinalData.csv"
+data: "data/test_data.csv"
 nsamples_prevalence_map: 100
 end_sim_year: 2019
 AMIS:
