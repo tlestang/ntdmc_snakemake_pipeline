@@ -1,9 +1,12 @@
-data: "data/FinalData.csv"
-nsamples_prevalence_map: 100
+data: "data/FinalDataTest.csv"
+nsamples_prevalence_map: 1000
 end_sim_year: 2019
 AMIS:
-  nsamples: 100
-  delta: 5
-  T: 2
-  target_ess_size: 250
+  smooth_param: 0.01
+  nsamples: 10
+  mixture_samples: 1000
+  df: 3
+  target_ess_size: 500
+  log_scale: False
+  max_iterations: 2
 nsamples_beta: 10
