@@ -1,7 +1,5 @@
 configfile: "config.yaml"
 
-from trachoma import Trachoma_Simulation
-
 def aggregate_input(wildcards):
     from pandas import read_csv
     data = read_csv(config["data"])
