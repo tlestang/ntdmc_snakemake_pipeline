@@ -1,4 +1,5 @@
 data: "data/FinalDataTest.csv"
+trachoma_env: "./trachoma_venv"
 nsamples_prevalence_map: 1000
 end_sim_year: 2019
 AMIS:
