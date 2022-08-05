@@ -2,10 +2,19 @@ reticulate::use_virtualenv(snakemake@wildcards[["trachoma_env"]], required = TRU
 trachoma_module <- reticulate::import("trachoma")
 model_func <- trachoma_module$Trachoma_Simulation
 
+## This script is executed for several groups of IUs, grouped by
+## values of first MDA year, last MDA year, and average prevalence
+## level. Because multiple instance of this script can run in the same
+## time, we need to make sure temporary model file have a unique
+## identifier.
+GROUP_ID <- sprintf("%s_%s_%s", snakemake@wildcards[["FIRST_MDA"]],
+                    snakemake@wildcards[["LAST_MDA"]],
+                    snakemake@wildcards[["LEVEL"]])
+
 wrapped_model <- function(seeds, beta_values) {
     ## write input on disk
-    input_file=sprintf("beta_values_job%s.csv", snakemake@wildcards[["LEVEL"]])
-    output_file=sprintf("prevalence_job%s.csv", snakemake@wildcards[["LEVEL"]])
+    input_file=sprintf("beta_values_job%s.csv", GROUP_ID)
+    output_file=sprintf("prevalence_job%s.csv", GROUP_ID)
 
     write.csv(
         cbind(seeds, beta_values),
@@ -17,7 +26,7 @@ wrapped_model <- function(seeds, beta_values) {
         input_file,
         snakemake@input[[1]],
         output_file,
-        sprintf("infection_job%s.csv.csv", snakemake@wildcards[["LEVEL"]]),
+        sprintf("infection_job%s.csv", GROUP_ID),
         SaveOutput = F,
         OutSimFilePath = NULL,
         InSimFilePath = NULL
