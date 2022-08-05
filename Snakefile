@@ -54,6 +54,7 @@ rule make_prevalence_maps:
         "results/prev_map_{FIRST_MDA}_{LAST_MDA}_level_{LEVEL}.csv",
     params:
         nsamples=config["nsamples_prevalence_map"],
+    group: "amis"
     script:
         "scripts/compute_prevalence_maps.py"
 
@@ -111,6 +112,7 @@ rule estimate_parameter_weights:
         target_ess=config["AMIS"]["target_ess_size"],
         log=config["AMIS"]["log_scale"],
         max_iters=config["AMIS"]["max_iterations"],
+    group: "amis"
     script:
         "scripts/sample_parameters.R"
 
@@ -143,6 +145,7 @@ rule sample_parameter_values:
         "results/sampled_parameters_{IUCODE}.csv",
     params:
         nsamples=config["nsamples_beta"],
+    group: "resimulate"
     script:
         "scripts/sample_parameters.py"
 
@@ -157,6 +160,7 @@ rule resimulate_history:
         get_input_mda_file,
     output:
         "results/output_state_{IUCODE}.p"
+    group: "resimulate"
     run:
         Trachoma_Simulation(
             input[0],
@@ -180,6 +184,7 @@ rule prepare_mda_file:
     """
     output:
         "results/mda_input.csv",
+    group: "resimulate"
     script:
         "scripts/prepare_mda_file.py"
 
@@ -203,6 +208,7 @@ rule forward_simulate:
     output:
         infection="results/infection_{IUCODE}.csv",
         prevalence="results/prevalence_{IUCODE}.csv",
+    group: "resimulate"
     run:
         from trachoma import Trachoma_Simulation
 
