@@ -29,7 +29,8 @@ wrapped_model <- function(seeds, beta_values) {
         sprintf("infection_job%s.csv", GROUP_ID),
         SaveOutput = F,
         OutSimFilePath = NULL,
-        InSimFilePath = NULL
+        InSimFilePath = NULL,
+        logger = NULL
     )
 
     # "prev" == "prevalence"

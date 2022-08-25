@@ -169,6 +169,7 @@ rule resimulate_history:
             InfectFilePath="results/InfectFilePath.csv",
             SaveOutput=True,
             OutSimFilePath=output[0],
+            logger=None,
         )
 
 
@@ -219,4 +220,5 @@ rule forward_simulate:
             InfectFilePath=output.infection,
             SaveOutput=False,
             InSimFilePath=input.saved_state,
+            logger=None,
         )
