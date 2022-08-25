@@ -162,6 +162,8 @@ rule resimulate_history:
         "results/output_state_{IUCODE}.p"
     group: "resimulate"
     run:
+        from trachoma import Trachoma_Simulation
+
         Trachoma_Simulation(
             input[0],
             input[1],
