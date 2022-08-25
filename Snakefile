@@ -5,7 +5,7 @@ def aggregate_input(wildcards):
     data = read_csv(config["data"])
     return [f"results/infection_{iucode}.csv" for iucode in data["IUCodes"]]
 
-localrules: all, group_ius, make_mda_file
+localrules: all, group_ius, make_mda_file, prepare_mda_file
 
 rule all:
     input:
@@ -185,7 +185,6 @@ rule prepare_mda_file:
     """
     output:
         "results/mda_input.csv",
-    group: "resimulate"
     script:
         "scripts/prepare_mda_file.py"
 
