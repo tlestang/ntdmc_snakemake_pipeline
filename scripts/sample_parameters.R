@@ -1,4 +1,3 @@
-reticulate::use_virtualenv(snakemake@wildcards[["trachoma_env"]], required = TRUE)
 trachoma_module <- reticulate::import("trachoma")
 model_func <- trachoma_module$Trachoma_Simulation
 
