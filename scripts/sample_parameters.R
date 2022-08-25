@@ -67,7 +67,7 @@ prior<-list(rprior=rprior,dprior=dprior)
 
 prevalence_map = read.csv(snakemake@input[[2]])
 
-param_and_weights = trachomAMIS::amis(prevalence_map = prevalence_map,
+param_and_weights <- trachomAMIS::amis(prevalence_map = prevalence_map,
                                       transmission_model = wrapped_model,
                                       prior = prior,
                                       amis_params = snakemake@params,
