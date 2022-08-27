@@ -205,15 +205,12 @@ rule forward_simulate:
         infection="results/infection_{IUCODE}.csv",
         prevalence="results/prevalence_{IUCODE}.csv",
     group: "resimulate"
-    run:
-        from trachoma import Trachoma_Simulation
-
-        Trachoma_Simulation(
-            input.sampled_parameters,
-            input.mda_input,
-            PrevFilePath=output.prevalence,
-            InfectFilePath=output.infection,
-            SaveOutput=False,
-            InSimFilePath=input.saved_state,
-            logger=None,
-        )
+    shell:
+        """
+        python scripts/forward_simulate.py \
+            --beta-path {input.sampled_parameters} \
+            --mda-path {input.mda_input} \
+            --saved-state {input.saved_state} \
+            --prevalence-path {output.prevalence} \
+            --infection-path {output.infection}
+        """
