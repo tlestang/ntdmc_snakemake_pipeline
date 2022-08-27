@@ -161,19 +161,13 @@ rule resimulate_history:
     output:
         "results/output_state_{IUCODE}.p"
     group: "resimulate"
-    run:
-        from trachoma import Trachoma_Simulation
-
-        Trachoma_Simulation(
-            input[0],
-            input[1],
-            PrevFilePath="results/PrevFilePath.csv",
-            InfectFilePath="results/InfectFilePath.csv",
-            SaveOutput=True,
-            OutSimFilePath=output[0],
-            logger=None,
-        )
-
+    shell:
+        """
+        python scripts/resimulate_history.py \
+            --beta-path {input[0]} \
+            --mda-path {input[1]} \
+            --pickle-path {output[0]}
+        """
 
 rule prepare_mda_file:
     """
