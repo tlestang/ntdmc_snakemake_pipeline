@@ -1,4 +1,4 @@
-cluster: "qsub -P hollingsworth.prjc -q test.qc -cwd -pe shmem 1 -o out -e err"
+cluster: "qsub -P hollingsworth.prjc -q short.qc -cwd -pe shmem 1 -o out -e err"
 jobs: 10
 latency-wait: 60
 max-jobs-per-second: 1
