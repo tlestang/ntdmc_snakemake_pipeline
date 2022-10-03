@@ -1,0 +1,8 @@
+rule all:
+    output:
+        "out.txt"
+    shell:
+        """
+        echo 'ALL GOOD :)' > out.txt
+        cat out.txt
+        """
