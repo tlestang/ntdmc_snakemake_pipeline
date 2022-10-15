@@ -29,7 +29,8 @@ wrapped_model <- function(seeds, beta_values) {
         SaveOutput = F,
         OutSimFilePath = NULL,
         InSimFilePath = NULL,
-        logger = NULL
+        logger = NULL,
+        num_cores = snakemake@threads,
     )
 
     # "prev" == "prevalence"

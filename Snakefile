@@ -112,6 +112,7 @@ rule estimate_parameter_weights:
         target_ess=config["AMIS"]["target_ess_size"],
         log=config["AMIS"]["log_scale"],
         max_iters=config["AMIS"]["max_iterations"],
+    threads: 8
     group: "amis"
     script:
         "scripts/sample_parameters.R"
@@ -160,6 +161,7 @@ rule resimulate_history:
         get_input_mda_file,
     output:
         "results/output_state_{IUCODE}.p"
+    threads: 1
     group: "resimulate"
     run:
         from trachoma import Trachoma_Simulation
@@ -172,6 +174,7 @@ rule resimulate_history:
             SaveOutput=True,
             OutSimFilePath=output[0],
             logger=None,
+            num_cores=snakemake.threads,
         )
 
 
@@ -210,6 +213,7 @@ rule forward_simulate:
     output:
         infection="results/infection_{IUCODE}.csv",
         prevalence="results/prevalence_{IUCODE}.csv",
+    threads: 1
     group: "resimulate"
     run:
         from trachoma import Trachoma_Simulation
@@ -222,4 +226,5 @@ rule forward_simulate:
             SaveOutput=False,
             InSimFilePath=input.saved_state,
             logger=None,
+            num_cores=snakemake.threads,
         )
