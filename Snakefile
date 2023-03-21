@@ -114,6 +114,8 @@ rule estimate_parameter_weights:
         max_iters=config["AMIS"]["max_iterations"],
     threads: 8
     group: "amis"
+    conda:
+        "envs/ntdmc-pipeline.yml"
     script:
         "scripts/sample_parameters.R"
 
@@ -163,6 +165,8 @@ rule resimulate_history:
         "results/output_state_{IUCODE}.p"
     threads: 1
     group: "resimulate"
+    conda:
+        "envs/ntd-trachoma.yml"
     run:
         from trachoma import Trachoma_Simulation
 
@@ -215,6 +219,8 @@ rule forward_simulate:
         prevalence="results/prevalence_{IUCODE}.csv",
     threads: 1
     group: "resimulate"
+    conda:
+        "envs/ntd-trachoma.yml"
     run:
         from trachoma import Trachoma_Simulation
 

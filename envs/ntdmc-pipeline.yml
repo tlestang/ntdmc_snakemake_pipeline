@@ -1,0 +1,8 @@
+name: ntdmc-pipeline
+channels:
+  - conda-forge
+  - ntdmc
+dependencies:
+  - r-trachomamis
+  - ntd-trachoma
+  - r-reticulate
