@@ -167,20 +167,8 @@ rule resimulate_history:
     group: "resimulate"
     conda:
         "envs/ntd-trachoma.yml"
-    run:
-        from trachoma import Trachoma_Simulation
-
-        Trachoma_Simulation(
-            input[0],
-            input[1],
-            PrevFilePath="results/PrevFilePath.csv",
-            InfectFilePath="results/InfectFilePath.csv",
-            SaveOutput=True,
-            OutSimFilePath=output[0],
-            logger=None,
-            num_cores=snakemake.threads,
-        )
-
+    script:
+        "scripts/resimulate_history.py"
 
 rule prepare_mda_file:
     """
@@ -221,16 +209,5 @@ rule forward_simulate:
     group: "resimulate"
     conda:
         "envs/ntd-trachoma.yml"
-    run:
-        from trachoma import Trachoma_Simulation
-
-        Trachoma_Simulation(
-            input.sampled_parameters,
-            input.mda_input,
-            PrevFilePath=output.prevalence,
-            InfectFilePath=output.infection,
-            SaveOutput=False,
-            InSimFilePath=input.saved_state,
-            logger=None,
-            num_cores=snakemake.threads,
-        )
+    script:
+        "scripts/forward_simulate.py"
