@@ -6,6 +6,7 @@ def aggregate_input(wildcards):
     return [f"results/infection_{iucode}.csv" for iucode in data["IUCodes"]]
 
 localrules: all, group_ius, make_mda_file, prepare_mda_file
+ruleorder: fake_amis > estimate_parameter_weights
 
 rule all:
     input:
@@ -81,6 +82,19 @@ rule make_mda_file:
     script:
         "scripts/make_mda_files.py"
 
+
+rule fake_amis:
+    input:
+        "results/mda_input_{FIRST_MDA}_{LAST_MDA}.csv",
+        "results/prev_map_{FIRST_MDA}_{LAST_MDA}_level_{LEVEL}.csv",
+        "results/FinalDataLevel.csv",
+        ".no-amis",
+    output:
+        "results/amis_output_{FIRST_MDA}_{LAST_MDA}_level_{LEVEL}.csv",
+    params:
+        nsamples=config["AMIS"]["nsamples"]
+    script:
+        "scripts/fake_amis.py"
 
 rule estimate_parameter_weights:
     """
