@@ -21,4 +21,4 @@ jobs:
         git config user.name 'github-action'
         git config user.email 'github-action'
         ghp-import -m 'Update sphinx docs' --push --no-history \
-          --branch --no-jekyll --force gh-pages docs/build/html
+          --branch gh-pages --no-jekyll --force docs/build/html
