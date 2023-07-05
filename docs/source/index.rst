@@ -27,3 +27,5 @@ The pipeline is implemented as a Snakemake workflow.
 
    install
    quickstart
+   workflow_description
+   guides/index
