@@ -93,7 +93,13 @@ can be overriden using the ``--config`` option:
 
 .. code:: shell
 
-   snakemake --cores 1 --use-conda --conda-frontend conda
+   snakemake --cores 1 --use-conda --conda-frontend conda \
+       --config nsamples_beta=100
 
+A specific configuration file can also be specified, instead of the
+default ``config.yaml``:
 
+.. code:: shell
 
+   snakemake --cores 1 --use-conda --conda-frontend conda \
+       --configfile my/other/configfile.yaml
