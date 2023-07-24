@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Oxford BMRC &#8212; NTDMC inference pipeline  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="System-specific guides" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="oxford-bmrc">
+<h1>Oxford BMRC<a class="headerlink" href="#oxford-bmrc" title="Permalink to this heading">¶</a></h1>
+<p>This document will guide you across the set up and execution fo the
+NTDMC inference pipeline on the BMRC cluster.</p>
+<section id="set-up">
+<h2>Set up<a class="headerlink" href="#set-up" title="Permalink to this heading">¶</a></h2>
+<p>Start by downloading the workflow and supporting files.  You can do
+this with Git</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/tlestang/ntdmc_snakemake_pipeline.git
+</pre></div>
+</div>
+<p>You can also download the reposiroty as an archive from the GitHub repository page.</p>
+<p>Most of the workflow rules are is executed as cluster jobs. Snakemake
+automatically handles job status monitoring and submission. In order
+to ensure the job submission script submitted by Snakemake loads the
+right modules, we must specify a job submission template script.</p>
+<p>Copy the job submission template script into the pipeline directory:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>/well/hollingsworth/shared/inference_pipeline/BMRC_jobscript.sh<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
+<section id="input-data">
+<h2>Input data<a class="headerlink" href="#input-data" title="Permalink to this heading">¶</a></h2>
+<p>The pipeline repository comes ready with a small dataset
+<cite>data/quickstart.csv</cite> covering a few locations in Ethiopia, Uganda,
+Senegal, Burkina Faso, Nigeria and Tanzania.</p>
+<p>A larger dataset is available in the shared directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">well</span><span class="o">/</span><span class="n">hollingsworth</span><span class="o">/</span><span class="n">shared</span><span class="o">/</span><span class="n">inference_pipeline</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">diggle</span><span class="o">.</span><span class="n">csv</span>
+</pre></div>
+</div>
+</section>
+<section id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">¶</a></h2>
+<p>There are two types of configuration we need to take care of:</p>
+<ol class="arabic simple">
+<li><p>Parameters relative to where the workflow is running, in this case
+the BMRC (e.g. job submission command). These parameters are
+unlikely to change across runs.</p></li>
+<li><p>Parameters of the workflow itself (e.g. number of disease parameter
+values to forward simulate). These parameters are likely to change
+across runs.</p></li>
+</ol>
+<section id="cluster-parameters">
+<h3>Cluster parameters<a class="headerlink" href="#cluster-parameters" title="Permalink to this heading">¶</a></h3>
+<p>Cluster parameters could be specified manually as command line options
+when invoking <cite>snakemake</cite>.  Because their value is not expected to
+change much, let’s group them in a configuration file instead.  This
+file is referred to as a cluster <em>profile</em> is snakemake jargon.</p>
+<p>The pipeline repository already contains a default profile
+<cite>profiles/default/config.yml</cite>.  Let’s make a copy of it, creating a
+new BMRC profile:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>profiles/BMRC
+cp<span class="w"> </span>profiles/default/config.yml<span class="w"> </span>profiles/BMRC
+</pre></div>
+</div>
+<p>The default profile is almost ready to go.  The only line to change is
+the submission command (<cite>cluster</cite> entry).</p>
+<div class="highlight-diff notranslate"><div class="highlight"><pre><span></span><span class="gd">--- profiles/default/config.yaml</span>
+<span class="gi">+++ profiles/BMRC/config.yaml</span>
+<span class="gu">@@ -1,4 +1,4 @@</span>
+<span class="gd">-cluster: &quot;sbatch&quot;</span>
+<span class="gi">+cluster: &quot;sbatch -A hollingsworth.prj -p short&quot;</span>
+jobs: 10
+latency-wait: 60
+max-jobs-per-second: 1
+</pre></div>
+</div>
+<p>This ensure rule jobs will be attached to the <cite>hollingsworth</cite> project
+allocation, and submitted to the <cite>short</cite> queue.</p>
+</section>
+<section id="workflow-parameters">
+<h3>Workflow parameters<a class="headerlink" href="#workflow-parameters" title="Permalink to this heading">¶</a></h3>
+<p>Similarly to cluster parameters, values for workflow parameters can be
+specified in a YAML configuration file.  The pipeline repository comes
+with a default workflow configuration file <cite>config/default.yml</cite> that
+should be good enough to start with.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is also possible to specify value for workflow parameters
+as command line options to <cite>snakemake</cite>:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>snakemake<span class="w"> </span>--config<span class="w"> </span>&lt;keyword&gt;<span class="o">=</span>&lt;value&gt;
+</pre></div>
+</div>
+<p>Values specified at the command line take precedence over values
+specified in a configuration file.</p>
+</div>
+</section>
+</section>
+<section id="execution">
+<h2>Execution<a class="headerlink" href="#execution" title="Permalink to this heading">¶</a></h2>
+<p>The pipeline is executed by submitting a main snakemake job to the
+queuing system.  You can think of this job as a puppeteer: it is
+responsible for submitting jobs for rules, monitoring their status and
+checking their output.</p>
+<p>Before we submit the main snakemake job to the queuing system, we must
+specify a template jobscript for rule job submission.  You can copy
+the <cite>BMRC_jobscript.sh</cite> from the shared directory:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>/well/hollingsworth/shared/inference_pipeline/BMRC_jobscript.sh<span class="w"> </span>.
+</pre></div>
+</div>
+<p>We are now ready to submit the main snakemake job.  Let’s start by
+writing the submission script:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="c1"># snakemake-job.sh</span>
+<span class="c1">#!/bin/bash</span>
+
+<span class="c1">#SBATCH -J mainsnake</span>
+<span class="c1">#SBATCH -o mainsnake-%j.out</span>
+<span class="c1">#SBATCH -e mainsnake-%j.err</span>
+
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;------------------------------------------------&quot;</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Run on host: &quot;</span><span class="sb">`</span>hostname<span class="sb">`</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Operating system: &quot;</span><span class="sb">`</span>uname<span class="w"> </span>-s<span class="sb">`</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Username: &quot;</span><span class="sb">`</span>whoami<span class="sb">`</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Started at: &quot;</span><span class="sb">`</span>date<span class="sb">`</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;------------------------------------------------&quot;</span>
+
+module<span class="w"> </span>load<span class="w"> </span>snakemake/7.22.0-foss-2022a
+snakemake<span class="w"> </span>--profile<span class="w"> </span>profiles/BMRC<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>--configfile<span class="w"> </span>configs/default.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>--jobscript<span class="o">=</span>BMRC_jobscript.sh<span class="w"> </span><span class="se">\</span>
+<span class="w">          </span>--group-components<span class="w"> </span><span class="nv">resimulate</span><span class="o">=</span><span class="m">4</span>
+</pre></div>
+</div>
+<p>To save some typing, you can also find this script in the shared
+directory:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cp<span class="w"> </span>/well/hollingsworth/shared/inference_pipeline/snakemake-job.sh<span class="w"> </span>.
+</pre></div>
+</div>
+<p>Lastly, you can submit the main smakemake job with:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>sbatch<span class="w"> </span>-A<span class="w"> </span>hollingsworth.prj<span class="w"> </span>-p<span class="w"> </span>short<span class="w"> </span>snakemake-job.sh
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>user@rescomp1$ squeue -u user
+          JOBID PARTITION     NAME
+       22886203     short snakejob
+       22886204     short snakejob
+       22886205     short snakejob
+       22886206     short snakejob
+       22886182     short mainsnak
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">NTDMC inference pipeline</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Required software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../workflow_description.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">System-specific guides</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Oxford BMRC</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">System-specific guides</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">System-specific guides</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, Thibault Lestang.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/guides/BMRC.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
